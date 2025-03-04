@@ -34,7 +34,12 @@ const Dashboard = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedPage, setSelectedPage] = useState("Welcome"); 
 const [data, setdata] = useState()
-
+const stats = [
+  { title: "Admins", count: 1, color: "bg-blue-500" },
+  { title: "Requests", count: 2, color: "bg-red-500" },
+  { title: "Users", count: 10, color: "bg-yellow-500" },
+  { title: "Reports", count: 5, color: "bg-purple-500" },
+];
 
 
 const handleLogout = () => {
@@ -57,7 +62,7 @@ const handleLogout = () => {
     { name: "Footer", icon: <FaProjectDiagram /> },
     { name: "Contact", icon: <MdContactMail /> },
     { name: "Requests", icon: <MdContactMail /> },
-    { name: "SMTP Setup", icon: <MdContactMail /> },
+    // { name: "SMTP Setup", icon: <MdContactMail /> },
 
 
 
@@ -74,7 +79,7 @@ const handleLogout = () => {
     Projects: <ProjectLists/>,
     Footer: <Footer/>,
     Requests: <Requests/>,
-    "SMTP Setup": <p>hi</p>,
+    // "SMTP Setup": <p>hi</p>,
 
 
 
@@ -141,7 +146,17 @@ const handleLogout = () => {
             <h1>admin</h1>
           </div>
         </header>
+ {/* Welcome Message */}
+ {selectedPage === "Welcome" && <div className="min-h-screen bg-gray-100">
+      <div className="bg-green-500 text-white text-center p-3">
+        <h1 className="text-2xl font-semibold">Welcome to Dashboard</h1>
+      </div>
 
+      
+    </div>}
+
+      
+      
         {/* Dynamic Content Rendering */}
         <main className="flex-1 p-6">{pageContent[selectedPage]}</main>
       </div>

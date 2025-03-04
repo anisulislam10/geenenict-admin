@@ -21,10 +21,11 @@ const HeroAndAbout = () => {
 
   // Fetch all data
   const fetchData = async () => {
+    console.log("Fetching data...");
     try {
       const response = await fetch(`${import.meta.env.VITE_BASE_URL}herosection/getAll`);
       const result = await response.json();
-      console.log("response....",result[0])
+      console.log("Fetched Data:", result);
       if (response.ok) {
         setData(result);
       } else {
@@ -34,7 +35,7 @@ const HeroAndAbout = () => {
       toast.error("Error fetching data!");
     }
   };
-
+  
   // Handle file upload
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
@@ -49,7 +50,7 @@ const HeroAndAbout = () => {
       toast.error("All fields are required!");
       return;
     }
-
+  
     const formData = new FormData();
     formData.append("header", header);
     formData.append("title", title);
@@ -58,23 +59,27 @@ const HeroAndAbout = () => {
     formData.append("description", description);
     formData.append("whoIAm", whoIAm);
     formData.append("expertise", expertise);
+  
     if (selectedFile) {
       formData.append("image", selectedFile);
     }
-
+  
     try {
       const url = editingId
+      
         ? `${import.meta.env.VITE_BASE_URL}herosection/update/${editingId}`
         : `${import.meta.env.VITE_BASE_URL}herosection/post`;
-
+  
       const method = editingId ? "PUT" : "POST";
-
+  
       const response = await fetch(url, {
         method,
-        body: formData,
+        body: formData, 
       });
-
+  
       const result = await response.json();
+      console.log("Server Response:", result); 
+  
       if (response.ok) {
         toast.success(editingId ? "Updated successfully!" : "Added successfully!");
         fetchData();
@@ -83,9 +88,12 @@ const HeroAndAbout = () => {
         toast.error(result.message || "Operation failed!");
       }
     } catch (error) {
+      console.error("Error submitting data:", error);
       toast.error("Error submitting data!");
     }
   };
+  
+  
 
   // Delete a record
   const handleDelete = async (id) => {
@@ -109,16 +117,17 @@ const HeroAndAbout = () => {
   // Edit a record
   const handleEdit = (item) => {
     setEditingId(item._id);
-    setHeader(item.header);
-    setTitle(item.title);
-    setSubtitle(item.subtitle);
-    setSubsubtitle(item.subsubtitle);
-    setWhoIAm(item.whoIAm);
-    setExpertise(item.expertise);
-    setDescription(item.description);
+    setHeader(item.header || "");
+    setTitle(item.title || "");
+    setSubtitle(item.subtitle || "");
+    setSubsubtitle(item.subsubtitle || "");
+    setWhoIAm(item.whoIAm || "");
+    setExpertise(item.expertise || "");
+    setDescription(item.description || "");
+    setSelectedFile(null); // Reset file selection for update
     window.scrollTo({ top: 0, behavior: "smooth" });
-
   };
+  
 
   // Reset form
   const resetForm = () => {

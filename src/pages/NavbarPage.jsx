@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 const NavbarPage = () => {
   const [logo, setLogo] = useState(null);
   const [logoPreview, setLogoPreview] = useState(""); // Store preview URL
+  const [logoPreviews, setLogoPreviews] = useState(""); // Store preview URL
+
   const [logoText, setLogoText] = useState("");
   const [buttonText, setButtonText] = useState("");
   const [message, setMessage] = useState("");
@@ -21,6 +23,7 @@ const NavbarPage = () => {
     try {
       const response = await fetch(`${import.meta.env.VITE_BASE_URL}navbar/getAll`);
       const data = await response.json();
+      console.log("data",data)
       setNavbarItems(data);
   
       if (data.length > 0) {
@@ -28,6 +31,9 @@ const NavbarPage = () => {
         setLogoText(data[0].logoText);
         setButtonText(data[0].buttonText);
         setLogoPreview(`${import.meta.env.VITE_BASE_URL_IMG}${data[0].logo}`);
+        {
+            console.log("....",`${import.meta.env.VITE_BASE_URL_IMG}${data.logo}`)
+        }
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -39,7 +45,7 @@ const NavbarPage = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setLogo(file);
-    setLogoPreview(URL.createObjectURL(file)); // Preview selected file
+    setLogoPreviews(URL.createObjectURL(file)); // Preview selected file
   };
 
   // Handle form submission (Add & Update)
@@ -66,6 +72,7 @@ const NavbarPage = () => {
       } else {
         response = await fetch(`${import.meta.env.VITE_BASE_URL}navbar/post`, {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: formData,
         });
       }
@@ -139,8 +146,11 @@ const NavbarPage = () => {
               onChange={handleFileChange}
               className="w-full border rounded-md px-3 py-2"
             />
-            {logoPreview && (
-              <img src={logoPreview} alt="Logo Preview" className="w-20 h-20 mt-2 rounded-md object-contain" />
+            {logo && logo? (
+              <img src={logoPreviews} alt="Logo Preview" className="w-20 h-20 mt-2 rounded-md object-contain" />
+            ):navbarItems[0]?.image &&(
+                <img src={logoPreview} alt="Logo Preview" className="w-20 h-20 mt-2 rounded-md object-contain" />
+
             )}
           </div>
 
@@ -190,7 +200,10 @@ const NavbarPage = () => {
             <div key={item._id} className="bg-white p-4 rounded-lg shadow-md mb-4">
               <p className="font-medium text-gray-700">Logo Text: {item.logoText}</p>
               <p className="text-gray-600">Button Text: {item.buttonText}</p>
-              <img src={`${import.meta.env.VITE_BASE_URL_IMG}${item.logo}`} alt="Navbar Image" className="w-20 h-20 object-contain" />
+              {item.image?              <img src={`${import.meta.env.VITE_BASE_URL_IMG}${item.logo}`} alt="Navbar Image" className="w-20 h-20 object-contain" />
+
+:''
+}
 
               <div className="flex justify-between mt-2">
                 <button
