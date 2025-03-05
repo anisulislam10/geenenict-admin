@@ -10,36 +10,43 @@ const Services = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [existingImage, setExistingImage] = useState("");
-  console.log("api....",editingId)
+  const [refresh, setRefresh] = useState(false);
 
   useEffect(() => {
     fetchServices();
-  }, []);
+  }, [refresh]);
+
+  const triggerRefresh = () => setRefresh((prev) => !prev);
 
   const fetchServices = async () => {
     try {
+      console.log("Fetching services...");
       const response = await fetch(`${import.meta.env.VITE_BASE_URL}services/getAll`);
       const result = await response.json();
+      console.log("API Response:", result);
+  
       if (response.ok) {
-        setServices(result.data);
+        const servicesWithBase64 = result.data.map(service => ({
+          ...service,
+          image: service.image ? `data:image/jpeg;base64,${service.image}` : null
+        }));
+        setServices(servicesWithBase64);
       } else {
         toast.error("Failed to fetch services");
       }
     } catch (error) {
       toast.error("Error fetching services");
+      console.error("Fetch error:", error);
     }
   };
-
-  const handleFileUpload = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
+  
 
   const handleSubmit = async () => {
     if (!title || !description) {
       toast.error("Title and description are required!");
       return;
     }
-
+  
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
@@ -47,39 +54,36 @@ const Services = () => {
     if (selectedFile) {
       formData.append("image", selectedFile);
     }
-
+  
     try {
       const url = editingId
         ? `${import.meta.env.VITE_BASE_URL}services/update/${editingId}`
         : `${import.meta.env.VITE_BASE_URL}services/post`;
-
+  
       const method = editingId ? "PUT" : "POST";
-
+  
       const response = await fetch(url, {
         method,
+        // ❌ DO NOT SET HEADERS for FormData, the browser sets them automatically
         body: formData,
       });
-
+  
       const result = await response.json();
+      console.log("Updated API Response:", result);
+  
       if (response.ok) {
         toast.success(editingId ? "Service updated!" : "Service added!");
-        fetchServices();
+        triggerRefresh();
         resetForm();
       } else {
         toast.error(result.message || "Failed to save service");
       }
     } catch (error) {
       toast.error("Error submitting data");
+      console.error("Submit error:", error);
     }
   };
-
-  const handleEdit = (service) => {
-    setEditingId(service._id);
-    setTitle(service.title);
-    setDescription(service.description);
-    setExistingImage(service.image);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  
 
   const handleDelete = async (id) => {
     try {
@@ -87,16 +91,22 @@ const Services = () => {
         method: "DELETE",
       });
 
-      const result = await response.json();
       if (response.ok) {
         toast.success("Service deleted!");
-        fetchServices();
+        triggerRefresh();
       } else {
         toast.error("Failed to delete");
       }
     } catch (error) {
       toast.error("Error deleting service");
     }
+  };
+
+  const handleEdit = (service) => {
+    setTitle(service.title);
+    setDescription(service.description);
+    setEditingId(service._id);
+    setExistingImage(service.image);
   };
 
   const resetForm = () => {
@@ -111,39 +121,48 @@ const Services = () => {
     <div className="flex flex-col justify-start mx-64 space-y-4">
       <h2 className="text-xl font-bold">Services Section</h2>
 
-      <input
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Title"
-        className="border rounded p-2 w-full"
+      <input 
+        type="text" 
+        value={title} 
+        onChange={(e) => setTitle(e.target.value)} 
+        placeholder="Title" 
+        className="border rounded p-2 w-full" 
       />
 
-      <Editor
-        apiKey={import.meta.env.VITE_TEXT_EDITOR_API_KEY}
-        value={description}
-        onEditorChange={(newValue) => setDescription(newValue)}
-        init={{ placeholder: "Description..." }}
+      <Editor 
+        apiKey={import.meta.env.VITE_TEXT_EDITOR_API_KEY} 
+        value={description} 
+        onEditorChange={(newValue) => setDescription(newValue)} 
+        init={{ placeholder: "Description..." }} 
       />
 
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleFileUpload}
-        className="border rounded p-2 w-full"
+      <input 
+        type="file" 
+        accept="image/*" 
+        onChange={(e) => setSelectedFile(e.target.files[0])} 
+        className="border rounded p-2 w-full" 
       />
 
       {existingImage && !selectedFile && (
-        <img src={`${import.meta.env.VITE_BASE_URL_IMG}${existingImage}`} alt="Current" className="w-20 h-20 mt-2" />
+        <div className="mt-2">
+          <img 
+            src={`${import.meta.env.VITE_BASE_URL_IMG}${existingImage}`} 
+            alt="Existing Service" 
+            className="w-16 h-16"
+          />
+        </div>
       )}
 
       <button onClick={handleSubmit} className="bg-blue-500 text-white font-bold py-2 px-4 rounded">
         {editingId ? "Update" : "Submit"}
       </button>
 
-      <hr className="my-6" />
+      <button onClick={resetForm} className="bg-gray-500 text-white font-bold py-2 px-4 rounded ml-2">
+        Cancel
+      </button>
 
-      {/* Services List Table */}
+      <ToastContainer />
+
       <h2 className="text-lg font-bold mt-4">Existing Services</h2>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse border border-gray-300">
@@ -160,25 +179,29 @@ const Services = () => {
               services.map((service) => (
                 <tr key={service._id} className="text-center">
                   <td className="border border-gray-300 p-2">{service.title}</td>
-                  <td className="border border-gray-300 p-2" dangerouslySetInnerHTML={{ __html: service.description }}></td>
+                  <td 
+                    className="border border-gray-300 p-2" 
+                    dangerouslySetInnerHTML={{ __html: service.description }}
+                  ></td>
+                 <td className="border border-gray-300 p-2">
+  {service.image && (
+    <img 
+      src={service.image} 
+      alt="Service" 
+      className="w-16 h-16 mx-auto" 
+    />
+  )}
+</td>
                   <td className="border border-gray-300 p-2">
-                    {service.image && (
-                      <img
-                        src={`${import.meta.env.VITE_BASE_URL_IMG}${service.image}`}
-                        alt="Service"
-                        className="w-16 h-16 mx-auto"
-                      />
-                    )}
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    <button
-                      onClick={() => handleEdit(service)}
+                    <button 
+                      onClick={() => handleEdit(service)} 
                       className="bg-yellow-500 text-white px-3 py-1 rounded mr-2"
                     >
                       Edit
                     </button>
-                    <button
-                      onClick={() => handleDelete(service._id)}
+                    
+                    <button 
+                      onClick={() => handleDelete(service._id)} 
                       className="bg-red-500 text-white px-3 py-1 rounded"
                     >
                       Delete
@@ -196,8 +219,6 @@ const Services = () => {
           </tbody>
         </table>
       </div>
-
-      <ToastContainer />
     </div>
   );
 };
