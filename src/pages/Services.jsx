@@ -146,7 +146,7 @@ const Services = () => {
       {existingImage && !selectedFile && (
         <div className="mt-2">
           <img 
-            src={`${import.meta.env.VITE_BASE_URL_IMG}${existingImage}`} 
+            src={existingImage.image}
             alt="Existing Service" 
             className="w-16 h-16"
           />
