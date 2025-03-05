@@ -143,15 +143,15 @@ const Services = () => {
         className="border rounded p-2 w-full" 
       />
 
-      {existingImage && !selectedFile && (
-        <div className="mt-2">
-          <img 
-            src={existingImage.image}
-            alt="Existing Service" 
-            className="w-16 h-16"
-          />
-        </div>
-      )}
+{existingImage && !selectedFile && (
+  <div className="mt-2">
+    <img 
+      src={existingImage} 
+      alt="Existing Service" 
+      className="w-16 h-16"
+    />
+  </div>
+)}
 
       <button onClick={handleSubmit} className="bg-blue-500 text-white font-bold py-2 px-4 rounded">
         {editingId ? "Update" : "Submit"}
